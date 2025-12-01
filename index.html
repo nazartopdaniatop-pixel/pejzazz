@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Пейзаж — HTML сторінка</title>
+  <style>
+    :root{
+      --sky-1: #89d4cf;
+      --sky-2: #69b7ff;
+      --sun: #FFD166;
+      --mountain-1: #2b3a67;
+      --mountain-2: #3f5a7a;
+      --ground: #77b28c;
+      --grass: #4fa973;
+      --river: #4db6ff;
+      --cloud: rgba(255,255,255,0.95);
+      --text: #083047;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;color:var(--text)}
+
+    /* Page layout */
+    .page{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background: linear-gradient(180deg,var(--sky-1) 0%, var(--sky-2) 60%, #e7f8ff 100%);
+      overflow:hidden;
+    }
+
+    header{
+      padding:20px 28px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      backdrop-filter: blur(4px);
+    }
+
+    header h1{margin:0;font-size:1.1rem;letter-spacing:0.6px}
+    header .controls{display:flex;gap:12px;align-items:center}
+
+    .container{
+      flex:1 1 auto;
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:28px;
+      align-items:stretch;
+      padding:12px 28px 40px;
+    }
+
+    /* Canvas / Scene area */
+    .scene{
+      position:relative;
+      border-radius:18px;
+      overflow:hidden;
+      min-height:60vh;
+      box-shadow:0 12px 40px rgba(6,30,50,0.2);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+    }
+
+    /* The landscape is an SVG sized to fill area */
+    svg{display:block;width:100%;height:100%}
+
+    /* Parallax layers control */
+    .layer{transform-origin:center;transition:transform 0.12s linear}
+
+    /* Text panel */
+    .panel{
+      background:rgba(255,255,255,0.8);
+      border-radius:12px;
+      padding:18px;
+      height:100%;
+      box-shadow:0 8px 30px rgba(6,30,50,0.08);
+      overflow:auto;
+    }
+
+    .panel h2{margin-top:0}
+    .panel p{line-height:1.45}
+
+    footer{padding:18px 28px;background:transparent;text-align:center;font-size:0.9rem}
+
+    /* Decorative elements */
+    .btn{
+      background:linear-gradient(180deg,#ffffff,#f0f7ff);
+      border:1px solid rgba(5,26,50,0.06);
+      padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600
+    }
+
+    /* Responsive */
+    @media (max-width:980px){
+      .container{grid-template-columns:1fr;}
+      header{padding:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Пейзаж — HTML демо</h1>
+      <div class="controls">
+        <button id="toggleDayNight" class="btn">Ніч/День</button>
+        <button id="reset" class="btn">Скинути</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="scene" id="scene">
+        <!-- SVG Landscape -->
+        <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <!-- Sky gradient -->
+          <defs>
+            <linearGradient id="skyGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#89d4cf" />
+              <stop offset="60%" stop-color="#69b7ff" />
+              <stop offset="100%" stop-color="#e7f8ff" />
+            </linearGradient>
+
+            <radialGradient id="sunGlow" cx="50%" cy="45%" r="35%">
+              <stop offset="0%" stop-color="#fff9d6" stop-opacity="0.95" />
+              <stop offset="40%" stop-color="#ffd166" stop-opacity="0.9" />
+              <stop offset="100%" stop-color="#ffd166" stop-opacity="0" />
+            </radialGradient>
+
+            <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6" />
+            </filter>
+          </defs>
+
+          <!-- background sky -->
+          <rect x="0" y="0" width="1200" height="700" fill="url(#skyGrad)" />
+
+          <!-- sun -->
+          <g class="layer" data-depth="0.02" id="sunGroup">
+            <circle cx="920" cy="140" r="38" fill="url(#sunGlow)" />
+            <circle cx="920" cy="140" r="24" fill="#FFD166" />
+          </g>
+
+          <!-- distant mountains (back) -->
+          <g class="layer" data-depth="0.08" id="mountainsBack">
+            <path d="M0 420 L120 320 L240 420 L360 300 L480 420 L600 330 L720 420 L840 300 L960 420 L1200 310 L1200 700 L0 700 Z"
+                  fill="#2d4263" opacity="0.95"/>
+          </g>
+
+          <!-- mid mountains -->
+          <g class="layer" data-depth="0.12" id="mountainsMid">
+            <path d="M0 460 L140 360 L240 460 L380 330 L520 460 L700 350 L880 460 L1080 330 L1200 460 L1200 700 L0 700 Z"
+                  fill="#3f5a7a"/>
+          </g>
+
+          <!-- trees / hills -->
+          <g class="layer" data-depth="0.18" id="hills">
+            <path d="M0 540 C120 490 240 520 360 480 C480 440 600 520 720 500 C840 480 960 520 1200 540 L1200 700 L0 700 Z"
+                  fill="var(--ground)"/>
+          </g>
+
+          <!-- river -->
+          <g class="layer" data-depth="0.26" id="river">
+            <path d="M1200 560 C980 520 780 540 620 560 C420 590 260 620 0 700 L1200 700 Z" fill="var(--river)"/>
+            <path d="M1200 560 C980 520 780 540 620 560 C420 590 260 620 0 700" stroke="#ffffff33" stroke-width="1" fill="none"/>
+          </g>
+
+          <!-- foreground grass -->
+          <g class="layer" data-depth="0.34" id="foreground">
+            <rect x="0" y="620" width="1200" height="80" fill="var(--grass)"/>
+            <!-- simple blades -->
+            <g opacity="0.9">
+              <path d="M60 680 q6 -24 12 0" stroke="#2f8b5a" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M100 690 q4 -16 8 0" stroke="#2f8b5a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </g>
+          </g>
+
+          <!-- animated clouds (top layer) -->
+          <g id="clouds" class="layer" data-depth="0.05">
+            <g id="cloud1" transform="translate(160,90)">
+              <ellipse cx="0" cy="0" rx="58" ry="28" fill="var(--cloud)" />
+              <ellipse cx="30" cy="-8" rx="44" ry="22" fill="var(--cloud)" />
+              <ellipse cx="-28" cy="-6" rx="36" ry="18" fill="var(--cloud)" />
+            </g>
+            <g id="cloud2" transform="translate(420,40)">
+              <ellipse cx="0" cy="0" rx="68" ry="30" fill="var(--cloud)" />
+              <ellipse cx="45" cy="-10" rx="50" ry="24" fill="var(--cloud)" />
+            </g>
+            <g id="cloud3" transform="translate(760,110)">
+              <ellipse cx="0" cy="0" rx="48" ry="22" fill="var(--cloud)" />
+              <ellipse cx="34" cy="-6" rx="36" ry="18" fill="var(--cloud)" />
+            </g>
+          </g>
+
+          <!-- small details: birds -->
+          <g id="birds" class="layer" data-depth="0.04">
+            <path d="M260 220 q10 -8 20 0" fill="none" stroke="#083047" stroke-width="2" stroke-linecap="round"/>
+            <path d="M280 218 q10 -8 22 0" fill="none" stroke="#083047" stroke-width="2" stroke-linecap="round"/>
+          </g>
+
+        </svg>
+      </div>
+
+      <aside class="panel">
+        <h2>Опис</h2>
+        <p>Це адаптивна односторінкова демонстрація пейзажу, зроблена за допомогою SVG та CSS. Є кілька шарів, які рухаються при русі миші — ефект паралаксу. Сонце та хмари анімовані — простий, але атмосферний малюнок для фонового елементу або вітальної сторінки.</p>
+
+        <h3>Інтерактивність</h3>
+        <ul>
+          <li>Рух миші створює паралакс (глибина шарів задана data-depth).</li>
+          <li>Кнопка "Ніч/День" міняє палітру (колір неба та інтенсивність сонця).</li>
+          <li>Кнопка "Скинути" повертає сцену до початкового стану.</li>
+        </ul>
+
+        <h3>Як використовувати</h3>
+        <p>Скопіюйте цей файл як <code>landscape.html</code>, відкрийте в браузері. Можна легко змінити кольори в :root, або додати нові SVG-елементи (дерева, будинки) — вони автоматично підхоплять паралакс-рух.</p>
+
+        <p style="margin-top:12px"><strong>Бажаєте версію з анімацією заходу сонця, або з адаптацією під мобільний екран (менше деталей)?</strong> Напишіть, і я підправлю.</p>
+      </aside>
+    </main>
+
+    <footer>
+      <small>Зроблено з ♥ — демо-пейзаж (SVG + CSS + невеликий JS)</small>
+    </footer>
+  </div>
+
+  <script>
+    // Parallax on mousemove
+    const scene = document.getElementById('scene');
+    const layers = Array.from(scene.querySelectorAll('.layer'));
+
+    function onMove(e){
+      const rect = scene.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) - 0.5; // -0.5..0.5
+      const y = ((e.clientY - rect.top) / rect.height) - 0.5;
+
+      layers.forEach(layer => {
+        const depth = parseFloat(layer.dataset.depth) || 0;
+        const moveX = -x * depth * 60; // px
+        const moveY = -y * depth * 30; // px
+        layer.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+      });
+    }
+
+    // gentle cloud animation (CSS-free, JS)
+    function animateClouds(){
+      const c1 = document.getElementById('cloud1');
+      const c2 = document.getElementById('cloud2');
+      const c3 = document.getElementById('cloud3');
+      let t = 0;
+      function step(){
+        t += 0.006;
+        c1.setAttribute('transform', `translate(${160 + Math.sin(t*1.1)*28},${90 + Math.cos(t*0.8)*8})`);
+        c2.setAttribute('transform', `translate(${420 + Math.cos(t*0.9)*36},${40 + Math.sin(t*1.2)*6})`);
+        c3.setAttribute('transform', `translate(${760 + Math.sin(t*0.7)*30},${110 + Math.cos(t*1.0)*10})`);
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Day/Night toggle
+    let isNight = false;
+    const toggle = document.getElementById('toggleDayNight');
+    toggle.addEventListener('click', ()=>{
+      isNight = !isNight;
+      if(isNight){
+        document.documentElement.style.setProperty('--sky-1','#0b2540');
+        document.documentElement.style.setProperty('--sky-2','#071428');
+        document.documentElement.style.setProperty('--sun','#ffb84d');
+        document.documentElement.style.setProperty('--ground','#1b3b2e');
+        document.documentElement.style.setProperty('--grass','#163b2a');
+        document.documentElement.style.setProperty('--river','#083a66');
+        document.documentElement.style.setProperty('--cloud','rgba(255,255,255,0.07)');
+        document.querySelector('header h1').style.color='#e6f7ff';
+      } else {
+        // reset to original palette
+        document.documentElement.style.setProperty('--sky-1','#89d4cf');
+        document.documentElement.style.setProperty('--sky-2','#69b7ff');
+        document.documentElement.style.setProperty('--sun','#FFD166');
+        document.documentElement.style.setProperty('--ground','#77b28c');
+        document.documentElement.style.setProperty('--grass','#4fa973');
+        document.documentElement.style.setProperty('--river','#4db6ff');
+        document.documentElement.style.setProperty('--cloud','rgba(255,255,255,0.95)');
+        document.querySelector('header h1').style.color='';
+      }
+    });
+
+    // Reset button
+    document.getElementById('reset').addEventListener('click', ()=>{
+      isNight = false;
+      document.documentElement.style.removeProperty('--sky-1');
+      document.documentElement.style.removeProperty('--sky-2');
+      document.documentElement.style.removeProperty('--sun');
+      document.documentElement.style.removeProperty('--ground');
+      document.documentElement.style.removeProperty('--grass');
+      document.documentElement.style.removeProperty('--river');
+      document.documentElement.style.removeProperty('--cloud');
+      layers.forEach(l => l.style.transform = '');
+      document.querySelector('header h1').style.color='';
+    });
+
+    // listeners
+    scene.addEventListener('mousemove', onMove);
+    scene.addEventListener('touchmove', (e)=>{ if(e.touches) onMove(e.touches[0]) });
+
+    // init
+    animateClouds();
+  </script>
+</body>
+</html>
